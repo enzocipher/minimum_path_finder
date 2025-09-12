@@ -7,7 +7,7 @@ Además, exporta a **Graphviz (.dot)** y genera una **imagen en disposición cir
 
 > La imagen se genera al ejecutar el programa; si aún no existe, verás un placeholder más abajo.
 
-![Grafo circular](grafo_circular.png)
+![Grafo circular](enzo.png)
 
 ---
 
