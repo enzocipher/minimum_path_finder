@@ -13,7 +13,7 @@ Proyecto en **Rust** que permite:
 
 1. [🚀 Cómo ejecutar el proyecto](#-cómo-ejecutar-el-proyecto)  
 2. [🖼️ Funcionalidades principales](#️-funcionalidades-principales)  
-3. [📦 Ejemplo de uso](#-ejemplo-de-uso)  
+3. [📦 Modo de uso](#-ejemplo-de-uso)  
 4. [🛠️ Requisitos](#️-requisitos)  
 5. [📄 Licencia](#-licencia)  
 
@@ -23,12 +23,12 @@ Proyecto en **Rust** que permite:
 
 Clona el repositorio y compílalo con **cargo**:
 
-git clone <repo>
-cd <repo>
-cargo run
-Para compilarlo como ejecutable sin abrir consola (en Windows):
+git clone https://github.com/enzocipher/minimum_path_finder.git
+cd minimum_path_finger/
 
-Generar ejecutable:
+Para compilarlo desde consola:
+cargo run
+Para generar ejecutable:
 cargo build --release 
 
 # 🖼️ Funcionalidades principales
@@ -40,7 +40,7 @@ cargo build --release
 
 🎨 Visualización clara e interactiva gracias a egui.
 
-# 📦 Ejemplo de uso
+# 📦 Modo de uso
 Abre la aplicación.
 
 Crea un grafo manualmente (agregando nodos/aristas).
