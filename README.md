@@ -15,7 +15,7 @@ Proyecto en **Rust** que permite:
 2. [🖼️ Funcionalidades principales](#️-funcionalidades-principales)  
 3. [📦 Modo de uso](#-ejemplo-de-uso)  
 4. [🛠️ Requisitos](#️-requisitos)  
-5. [📄 Licencia](#-licencia)  
+5. [📄 Licencia](#MIT-1-ov-file)  
 
 ---
 
