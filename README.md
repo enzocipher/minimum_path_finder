@@ -30,6 +30,7 @@ Para compilarlo como ejecutable sin abrir consola (en Windows):
 
 Generar ejecutable:
 cargo build --release 
+
 # 🖼️ Funcionalidades principales
 ✨ Crear y editar grafos en la interfaz.
 
@@ -53,8 +54,6 @@ Rust (versión estable recomendada).
 
 Librerías utilizadas:
 
-eframe
-
-egui
-
-petgraph
+- eframe
+- egui
+- petgraph
