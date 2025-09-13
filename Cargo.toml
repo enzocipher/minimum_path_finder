@@ -4,6 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-input_py = "1.0.0"
-petgraph = "0.8.2"
-rand = "0.9.2"
+eframe = "0.28"
+egui = "0.28"
+petgraph = "0.8"
+rand = "0.9"
+
+[build-dependencies]
+winres = "0.1"
+
+[[bin]]
+name = "projecto_computacional"
+path = "src/main.rs"
+[package.metadata.winres]
