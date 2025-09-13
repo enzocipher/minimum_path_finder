@@ -23,16 +23,14 @@ Proyecto en **Rust** que permite:
 
 Clona el repositorio y compílalo con **cargo**:
 
-```bash
 git clone <repo>
 cd <repo>
 cargo run
 Para compilarlo como ejecutable sin abrir consola (en Windows):
 
-bash
-Copiar código
-cargo build --release --target x86_64-pc-windows-gnu
-🖼️ Funcionalidades principales
+Generar ejecutable:
+cargo build --release 
+# 🖼️ Funcionalidades principales
 ✨ Crear y editar grafos en la interfaz.
 
 📝 Agregar nodos y aristas con pesos personalizados.
@@ -41,7 +39,7 @@ cargo build --release --target x86_64-pc-windows-gnu
 
 🎨 Visualización clara e interactiva gracias a egui.
 
-📦 Ejemplo de uso
+# 📦 Ejemplo de uso
 Abre la aplicación.
 
 Crea un grafo manualmente (agregando nodos/aristas).
@@ -50,7 +48,7 @@ Ejecuta el algoritmo de Dijkstra seleccionando nodo de inicio y fin.
 
 Visualiza en pantalla el camino más corto resaltado.
 
-🛠️ Requisitos
+# 🛠️ Requisitos
 Rust (versión estable recomendada).
 
 Librerías utilizadas:
