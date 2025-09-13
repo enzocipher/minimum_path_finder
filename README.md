@@ -1,6 +1,6 @@
 # Minimum Path Finder (Rust) — Grafos dirigidos con visualización
 
-# ! Aviso, el proyecto no es un virus pero usalo bajo tu propio riesgo, el antivirus detecta los cambios en archivos como malicioso, si tienes alguna sugerencia para hacer más seguro el codigo, comentamelo.
+# ! Se arregló el problema de antivirus detectandolo como virus, pero puede que siga saliendo, si tienes algun problema con el codigo o sugerencia para hacerlo más seguro, comentamelo.
 
 Genera **grafos dirigidos y ponderados** en Rust (con [`petgraph`](https://crates.io/crates/petgraph)), de forma **automática o manual**, garantizando **conectividad débil** (como una red de caminos reales).  
 Además, exporta a **Graphviz (.dot)** y genera una **imagen en disposición circular** (nodos “sentados en una mesa” 🟢).
@@ -20,7 +20,7 @@ Además, exporta a **Graphviz (.dot)** y genera una **imagen en disposición cir
   - **Ordenada y determinística** (posiciones fijas): `grafo_circular.png`
   - Alternativa rápida con **Graphviz `circo`**: `grafo_circo.png`
 - Exportación a **DOT** para inspección o uso externo.
-
+- Implementación con Dijkstra para encontrar el minimo camino.
 ---
 
 ## Requisitos 
