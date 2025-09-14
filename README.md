@@ -1,46 +1,59 @@
-# Minimum Path Finder (Rust) — Grafos dirigidos con visualización
+# Visualizador de Grafos con Dijkstra 🪢
 
-# ! Se arregló el problema de antivirus detectandolo como virus, pero puede que siga saliendo, si tienes algun problema con el codigo o sugerencia para hacerlo más seguro, comentamelo.
+Proyecto en **Rust** que permite:
 
-Genera **grafos dirigidos y ponderados** en Rust (con [`petgraph`](https://crates.io/crates/petgraph)), de forma **automática o manual**, garantizando **conectividad débil** (como una red de caminos reales).  
-Además, exporta a **Graphviz (.dot)** y genera una **imagen en disposición circular** (nodos “sentados en una mesa” 🟢).
-
-> La imagen se genera al ejecutar el programa; si aún no existe, verás un placeholder más abajo.
-
-![Grafo circular](enzo.png)
+- Crear grafos manualmente o de manera automática.  
+- Visualizar los nodos y aristas en una interfaz gráfica con **egui**.  
+- Ejecutar el algoritmo de **Dijkstra** para calcular la ruta más corta.  
+- Mostrar los resultados de manera interactiva con scroll y zoom.  
 
 ---
 
-## Por ahora tiene:
+## 📚 Índice
 
-- Grafo **dirigido** con **pesos** aleatorios (1..=10).
-- Opción de **etiquetas automáticas** (“Nodo1”, “Nodo2”, …) o **manuales**.
-- **Conectividad débil garantizada**: siempre hay un camino si ignoras dirección.
-- **Visualización circular**:
-  - **Ordenada y determinística** (posiciones fijas): `grafo_circular.png`
-  - Alternativa rápida con **Graphviz `circo`**: `grafo_circo.png`
-- Exportación a **DOT** para inspección o uso externo.
-- Implementación con Dijkstra para encontrar el minimo camino.
----
-
-## Requisitos 
-
-- **Rust** y **Cargo**  
-  <https://www.rust-lang.org/tools/install>
-- **Graphviz** (para generar PNG)
-  - **Linux (Debian/Ubuntu):** `sudo apt install graphviz`
-  - **macOS (Homebrew):** `brew install graphviz`
-  - **Windows (Chocolatey):** `choco install graphviz`  
-  > Asegúrate de tener `dot` y `neato` en tu `PATH`.
+1. [🚀 Cómo ejecutar el proyecto](#-cómo-ejecutar-el-proyecto)  
+2. [🖼️ Funcionalidades principales](#️-funcionalidades-principales)  
+3. [📦 Modo de uso](#-ejemplo-de-uso)  
+4. [🛠️ Requisitos](#️-requisitos)  
+5. [📄 Licencia](#MIT-1-ov-file)  
 
 ---
 
-## 🚀 Instalación y ejecución
+## 🚀 Cómo ejecutar el proyecto
 
-```bash
-# Clonar el repo
+Clona el repositorio y compílalo con **cargo**:
+
 git clone https://github.com/enzocipher/minimum_path_finder.git
-cd minimum_path_finder
+cd minimum_path_finger/
 
-# Ejecutar
+Para compilarlo desde consola:
 cargo run
+Para generar ejecutable:
+cargo build --release 
+
+# 🖼️ Funcionalidades principales
+✨ Crear y editar grafos en la interfaz.
+
+📝 Agregar nodos y aristas con pesos personalizados.
+
+🔍 Calcular la ruta más corta entre dos nodos con Dijkstra.
+
+🎨 Visualización clara e interactiva gracias a egui.
+
+# 📦 Modo de uso
+Abre la aplicación.
+
+Crea un grafo manualmente (agregando nodos/aristas).
+
+Ejecuta el algoritmo de Dijkstra seleccionando nodo de inicio y fin.
+
+Visualiza en pantalla el camino más corto resaltado.
+
+# 🛠️ Requisitos
+Rust (versión estable recomendada).
+
+Librerías utilizadas:
+
+- eframe
+- egui
+- petgraph
