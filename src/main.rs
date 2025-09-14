@@ -10,7 +10,7 @@ use petgraph::visit::EdgeRef;
 // La interfaz no sabia hacerla asi que tuve que investigar, podra ser mejor pero a las justas entiendo como funciona.
 // El proximo trabajo lo haré en python xd
 // main.rs solo maneja la interfaz y su inicialización, la logica del grafo y dijkstra estan en sus respectivos modulos
-
+// hecho con easygui (egui + eframe), no era tan
 struct DijkstraApp {
     n: usize,
     modo: Modo,
@@ -106,7 +106,7 @@ impl DijkstraApp {
         self.caminos = todas;
     }
 }
-
+// inicializador de la interfaz
 impl App for DijkstraApp {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
         // panel de titulo
@@ -231,16 +231,39 @@ impl App for DijkstraApp {
                         .show(ui, |ui| {
                             if self.caminos.is_empty() {
                                 ui.label("Sin caminos para mostrar.");
+                            //else
                             } else {
+                                // Necesitamos el grafo para sumar los pesos
+                                let g = self.grafo.as_ref().unwrap();
+
                                 for (i, c) in self.caminos.iter().enumerate() {
+                                    // Texto del camino con etiquetas
                                     let texto = c
                                         .iter()
                                         .map(|&idx| format!("{}({})", self.labels[idx], idx))
                                         .collect::<Vec<_>>()
                                         .join(" -> ");
-                                    ui.monospace(format!("{}: {}", i + 1, texto));
+
+                                    // Suma de pesos del camino
+                                    let mut total_peso: i32 = 0;
+                                    for win in c.windows(2) {
+                                        let u = win[0];
+                                        let v = win[1];
+                                        if let Some(eid) = g.find_edge(
+                                            petgraph::prelude::NodeIndex::new(u),
+                                            petgraph::prelude::NodeIndex::new(v),
+                                        ) {
+                                            if let Some(w) = g.edge_weight(eid) {
+                                                total_peso += *w;
+                                            }
+                                        }
+                                    }
+
+                                    ui.monospace(format!("{}: {}   |   suma de pesos = {}", i + 1, texto, total_peso));
                                 }
                             }
+
+
                         });
                 });
         });
@@ -279,12 +302,12 @@ fn draw_graph(
     let n = g.node_count();
     if n == 0 { return; }
 
-    // Layout circular
+    // escenario circular :v
     let center = rect.center();
     let r = (rect.width().min(rect.height()) * 0.45 * zoom as f32).max(40.0);
     let radio_nodo = (18.0 * zoom as f32).clamp(10.0, 30.0);
 
-    // Precomputar posiciones
+    // posiciones de los nodos
     let mut pos: Vec<Pos2> = Vec::with_capacity(n);
     for i in 0..n {
         let ang = (i as f32) / (n as f32) * std::f32::consts::TAU;
@@ -295,12 +318,38 @@ fn draw_graph(
         pos.push(p);
     }
 
-    // Dibujar aristas
+    // las aristas y sus flechas (colores y longitudes)
     let stroke_edge = Stroke { width: 1.5, color: Color32::from_gray(90) };
     let stroke_arrow = Stroke { width: 1.5, color: Color32::from_gray(90) };
-    let color_peso = Color32::from_gray(40);
+    //color blanco pa los pesos
+    let color_peso = Color32::from_rgb(240, 240, 240);
 
     // la mayoria de lo que hay aqui no tiene que ver con la logica del grafo, es solo logica de la interfaz
+    use std::collections::HashMap;
+
+    // === Helpers Bezier (punto y tangente final) ===
+    let _bezier_point = |p0: Pos2, p1: Pos2, p2: Pos2, p3: Pos2, t: f32| -> Pos2 {
+        let u = 1.0 - t;
+        let uu = u * u;
+        let tt = t * t;
+        let uuu = uu * u;
+        let ttt = tt * t;
+        Pos2 {
+            x: uuu * p0.x + 3.0 * uu * t * p1.x + 3.0 * u * tt * p2.x + ttt * p3.x,
+            y: uuu * p0.y + 3.0 * uu * t * p1.y + 3.0 * u * tt * p2.y + ttt * p3.y,
+        }
+    };
+
+    // === Preconteo de cuántas aristas paralelas hay por (u,v) ===
+    let mut multi_count: HashMap<(usize, usize), usize> = HashMap::new();
+    for e in g.edge_references() {
+        let key = (e.source().index(), e.target().index());
+        *multi_count.entry(key).or_insert(0) += 1;
+    }
+    // Llevamos cuántas ya hemos dibujado por (u,v) para alternar lados/espaciado
+    let mut seen: HashMap<(usize, usize), usize> = HashMap::new();
+
+    // === Dibujo de aristas ===
     for e in g.edge_references() {
         let u = e.source().index();
         let v = e.target().index();
@@ -309,46 +358,118 @@ fn draw_graph(
         let pu = pos[u];
         let pv = pos[v];
 
-        // Vector dirección
+        // Dirección y normal
         let dir = (pv - pu).normalized();
-        let margen = radio_nodo + 4.0;
+        let normal = Vec2::new(-dir.y, dir.x);
 
-        // Puntos con margen para que la línea no entre al círculo
+        // Margen para no meterse al círculo del nodo
+        let margen = radio_nodo + 4.0;
         let a = pu + dir * margen;
         let b = pv - dir * margen;
 
-        // La linea principal
-        painter.line_segment([a, b], stroke_edge);
+        // ¿cuántas aristas (u,v)?
+        let key = (u, v);
+        let total = *multi_count.get(&key).unwrap_or(&1);
 
-        // La flechita
-        let arrow_len = 12.0;
-        let arrow_w = 6.0;
-        let tip = b;
-        let base = tip - dir * arrow_len;
-        let perp = Vec2::new(-dir.y, dir.x) * arrow_w;
+        if total == 1 {
+            // === ÚNICA ARISTA -> RECTO ===
+            painter.line_segment([a, b], stroke_edge);
 
-        let p1 = base + perp;
-        let p2 = base - perp;
-        painter.add(egui::Shape::convex_polygon(
-            vec![p1, tip, p2],
-            stroke_arrow.color,               // color de relleno
-            egui::Stroke::new(1.0, stroke_arrow.color), // borde opcional
-        ));
+            // Flecha recta (igual que tu lógica original)
+            let arrow_len = 12.0;
+            let arrow_w = 6.0;
+            let tip = b;
+            let base = tip - dir * arrow_len;
+            let peso_perp = Vec2::new(-dir.y, dir.x) * arrow_w;
+            let p1 = base + peso_perp;
+            let p2 = base - peso_perp;
 
+            painter.add(egui::Shape::convex_polygon(
+                vec![p1, tip, p2],
+                stroke_arrow.color,
+                egui::Stroke::new(1.0, stroke_arrow.color),
+            ));
 
-        // Peso en el punto medio
-        if mostrar_pesos {
-            let mid = Pos2 {
-                x: (a.x + b.x) * 0.5,
-                y: (a.y + b.y) * 0.5,
-            } + perp * 0.1;
-            painter.text(
-                mid,
-                Align2::CENTER_CENTER,
-                w.to_string(),
-                egui::FontId::proportional((12.0 * zoom).clamp(10.0, 18.0)),
-                color_peso,
-            );
+            if mostrar_pesos {
+                let mid = Pos2 { x: (a.x + b.x) * 0.5, y: (a.y + b.y) * 0.5 };
+                let font = egui::FontId::proportional((12.0 * zoom).clamp(10.0, 18.0));
+                painter.text(mid, Align2::CENTER_CENTER, format!("{}", w), font, color_peso);
+            }
+        } else {
+            // ======= múltiples aristas: curvas =======
+            let idx = *seen.entry(key).and_modify(|i| *i += 1).or_insert(0);
+
+            // alterna lado (+/-) y escala separación
+            let side = if idx % 2 == 0 { 1.0 } else { -1.0 };
+            let tier = (idx / 2) as f32 + 1.0;
+
+            // curvatura base proporcional a distancia
+            let dist = (b - a).length();
+            let base_curva = (dist * 0.20).clamp(16.0, 80.0);
+            let offset = side * tier * base_curva;
+
+            // *** NUEVO: empuje longitudinal para control points ***
+            let push = (dist * 0.10).clamp(8.0, 32.0);
+
+            // control points: no simétricos para mejorar la curvatura visual
+            let ctrl1 = a + dir * push + normal * offset;
+            let ctrl2 = b - dir * push + normal * offset;
+
+            // polilínea de la Bezier
+            let samples = 24;
+            let mut pts: Vec<Pos2> = Vec::with_capacity(samples + 1);
+            let _bezier_point = |p0: Pos2, p1: Pos2, p2: Pos2, p3: Pos2, t: f32| -> Pos2 {
+                let u = 1.0 - t;
+                let uu = u * u;
+                let tt = t * t;
+                let uuu = uu * u;
+                let ttt = tt * t;
+                Pos2 {
+                    x: uuu * p0.x + 3.0 * uu * t * p1.x + 3.0 * u * tt * p2.x + ttt * p3.x,
+                    y: uuu * p0.y + 3.0 * uu * t * p1.y + 3.0 * u * tt * p2.y + ttt * p3.y,
+                }
+            };
+            for i in 0..=samples {
+                let t = i as f32 / samples as f32;
+                pts.push(_bezier_point(a, ctrl1, ctrl2, b, t));
+            }
+            painter.add(egui::Shape::line(pts.clone(), stroke_edge));
+
+            // *** NUEVO: tangente = último tramo de la polilínea ***
+            let tip = pts[samples];                    // final real de la curva
+            let prev = pts[samples.saturating_sub(1)]; // punto anterior
+            let tan_dir = (tip - prev).normalized();
+
+            // flecha alineada a la tangente de la curva
+            let arrow_len = 12.0;
+            let arrow_w = 6.0;
+            // retrocede un pelo para que la base no entre al nodo
+            let tip_adj = tip - tan_dir * 0.5;
+            let base = tip_adj - tan_dir * arrow_len;
+            let perp = Vec2::new(-tan_dir.y, tan_dir.x) * arrow_w;
+
+            let p1 = base + perp;
+            let p2 = base - perp;
+
+            painter.add(egui::Shape::convex_polygon(
+                vec![p1, tip_adj, p2],
+                stroke_arrow.color,
+                egui::Stroke::new(1.0, stroke_arrow.color),
+            ));
+
+            // peso en el medio de la curva, levemente hacia el lado de la curva
+            if mostrar_pesos {
+                let mid = _bezier_point(a, ctrl1, ctrl2, b, 0.5);
+                let font = egui::FontId::proportional((12.0 * zoom).clamp(10.0, 18.0));
+                painter.text(
+                    mid + normal * (offset.signum() * 0.10 * arrow_w),
+                    Align2::CENTER_CENTER,
+                    format!("{}", w),
+                    font,
+                    color_peso,
+                );
+            }
+
         }
     }
 
