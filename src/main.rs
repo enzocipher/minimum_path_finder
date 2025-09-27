@@ -1,3 +1,4 @@
+//Welcome to hell
 #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 mod grafo;
 mod dijkstra;
@@ -26,6 +27,9 @@ struct DijkstraApp {
     // Controles del gráfico
     zoom: f32,
     mostrar_pesos: bool,
+    offset: egui::Vec2, // desplazamiento del gráfico
+    arrastrando: bool,
+    ultimo_mouse: Option<egui::Pos2>,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -48,6 +52,9 @@ impl Default for DijkstraApp {
 
             zoom: 1.0,
             mostrar_pesos: true,
+            offset: egui::Vec2::ZERO,
+            arrastrando: false,
+            ultimo_mouse: None,
         }
     }
 }
@@ -97,7 +104,7 @@ impl DijkstraApp {
         self.log = pasos;
 
         if dist[self.destino].is_none() {
-            self.log.push("Destino no alcanzable desde el origen.".into());
+            self.log.push("Destino no alcanzable desde el origen indicado, intente otro destino.".into());
             return;
         }
 
@@ -125,7 +132,7 @@ impl App for DijkstraApp {
             if self.modo == Modo::Aleatorio {
                 ui.add(egui::Slider::new(&mut self.prob_extra, 0.0..=1.0).text("Prob. extra de arista"));
             } else {
-                ui.label("Aristas (una por línea): `U V peso`");
+                ui.label("Aristas (una por línea): `(U)inicio (V)destino (W)peso`");
                 ui.add(
                     egui::TextEdit::multiline(&mut self.manual_input)
                         .desired_rows(8)
@@ -162,23 +169,46 @@ impl App for DijkstraApp {
         // panel para ver resultado :like:
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::ScrollArea::vertical()
-                .auto_shrink([false, false]) // no encojas si hay más ancho/alto
+                .auto_shrink([false, false])
                 .show(ui, |ui| {
                     // === Gráfico ===
                     egui::CollapsingHeader::new("Gráfico")
                         .default_open(true)
                         .show(ui, |ui| {
-                            // reservar un ALTO fijo (o calculado) para el lienzo
                             let width = ui.available_width();
-                            let height = (width * 0.75).clamp(320.0, 900.0); // ajustable
-
+                            let height = (width * 0.75).clamp(320.0, 900.0);
                             let desired = egui::vec2(width, height);
-                            let (rect, _resp) = ui.allocate_at_least(desired, egui::Sense::hover());
+                            let (rect, resp) = ui.allocate_at_least(desired, egui::Sense::drag());
                             let painter = ui.painter_at(rect);
+
+                            // Pan: arrastrar con mouse
+                            if resp.dragged() {
+                                if let Some(pos) = ui.input(|i| i.pointer.interact_pos()) {
+                                    if let Some(prev) = self.ultimo_mouse {
+                                        let delta = pos - prev;
+                                        self.offset += delta;
+                                    }
+                                    self.ultimo_mouse = Some(pos);
+                                    self.arrastrando = true;
+                                }
+                            } else {
+                                self.arrastrando = false;
+                                self.ultimo_mouse = None;
+                            }
+
+                            // Zoom con Ctrl + rueda del ratón
+                            let input = ctx.input(|i| i.clone());
+                            if input.modifiers.ctrl && resp.hovered() {
+                                let scroll = input.raw_scroll_delta.y;
+                                if scroll != 0.0 {
+                                    let factor = if scroll > 0.0 { 1.10 } else { 0.90 };
+                                    self.zoom = (self.zoom * factor).clamp(0.5, 2.0);
+                                }
+                            }
 
                             if let Some(g) = &self.grafo {
                                 let labels_now = self.labels[..self.n].to_vec();
-                                dibujar::draw_graph(
+                                dibujar::draw_graph_offset(
                                     ui,
                                     &painter,
                                     rect,
@@ -186,6 +216,7 @@ impl App for DijkstraApp {
                                     &labels_now,
                                     self.zoom,
                                     self.mostrar_pesos,
+                                    self.offset,
                                 );
                             } else {
                                 ui.centered_and_justified(|ui| ui.label("Construye el grafo para visualizarlo."));

@@ -1,35 +1,19 @@
-
-use eframe::egui::{self, Align2, Color32, Pos2, Rounding, Stroke, Vec2};
-use petgraph::graph::DiGraph;
-use petgraph::visit::EdgeRef;
-use std::collections::HashMap;
-
-fn bezier_point(p0: Pos2, p1: Pos2, p2: Pos2, p3: Pos2, t: f32) -> Pos2 {
-    let u = 1.0 - t;
-    let uu = u * u;
-    let tt = t * t;
-    let uuu = uu * u;
-    let ttt = tt * t;
-    Pos2 {
-        x: uuu * p0.x + 3.0 * uu * t * p1.x + 3.0 * u * tt * p2.x + ttt * p3.x,
-        y: uuu * p0.y + 3.0 * uu * t * p1.y + 3.0 * u * tt * p2.y + ttt * p3.y,
-    }
-}
-
-pub fn draw_graph(
+/// Igual que draw_graph pero permite desplazamiento (offset) para pan.
+pub fn draw_graph_offset(
     _ui: &egui::Ui,
     painter: &egui::Painter,
     rect: egui::Rect,
     g: &DiGraph<String, i32>,
-    labels: &Vec<String>, // si prefieres, cámbialo a &[String]
+    labels: &Vec<String>,
     zoom: f32,
     mostrar_pesos: bool,
+    offset: Vec2,
 ) {
     let n = g.node_count();
     if n == 0 { return; }
 
-    // layout circular
-    let center = rect.center();
+    // layout circular con offset
+    let center = rect.center() + offset;
     let r = (rect.width().min(rect.height()) * 0.45 * zoom as f32).max(40.0);
     let radio_nodo = (18.0 * zoom as f32).clamp(10.0, 30.0);
 
@@ -94,8 +78,14 @@ pub fn draw_graph(
             ));
 
             if mostrar_pesos {
-                let mid = Pos2 { x: (a.x + b.x) * 0.5, y: (a.y + b.y) * 0.5 };
+                // Separar pesos si existe arista opuesta
+                let mut mid = Pos2 { x: (a.x + b.x) * 0.5, y: (a.y + b.y) * 0.5 };
                 let font = egui::FontId::proportional((12.0 * zoom).clamp(10.0, 18.0));
+                let opuesta = multi_count.get(&(v, u)).unwrap_or(&0) > &0;
+                if opuesta {
+                    let sep = 12.0 * zoom;
+                    mid += normal * sep;
+                }
                 painter.text(mid, Align2::CENTER_CENTER, format!("{}", w), font, color_peso);
             }
         } else {
@@ -143,10 +133,17 @@ pub fn draw_graph(
             ));
 
             if mostrar_pesos {
-                let mid = bezier_point(a, ctrl1, ctrl2, b, 0.5);
+                let mut mid = bezier_point(a, ctrl1, ctrl2, b, 0.5);
                 let font = egui::FontId::proportional((12.0 * zoom).clamp(10.0, 18.0));
+                let opuesta = multi_count.get(&(v, u)).unwrap_or(&0) > &0;
+                if opuesta {
+                    let sep = 12.0 * zoom;
+                    mid += normal * sep;
+                } else {
+                    mid += normal * (offset.signum() * 0.10 * arrow_w);
+                }
                 painter.text(
-                    mid + normal * (offset.signum() * 0.10 * arrow_w),
+                    mid,
                     Align2::CENTER_CENTER,
                     format!("{}", w),
                     font,
@@ -181,3 +178,21 @@ pub fn draw_graph(
         Stroke { width: 1.0, color: Color32::from_gray(180) },
     );
 }
+
+use eframe::egui::{self, Align2, Color32, Pos2, Rounding, Stroke, Vec2};
+use petgraph::graph::DiGraph;
+use petgraph::visit::EdgeRef;
+use std::collections::HashMap;
+
+fn bezier_point(p0: Pos2, p1: Pos2, p2: Pos2, p3: Pos2, t: f32) -> Pos2 {
+    let u = 1.0 - t;
+    let uu = u * u;
+    let tt = t * t;
+    let uuu = uu * u;
+    let ttt = tt * t;
+    Pos2 {
+        x: uuu * p0.x + 3.0 * uu * t * p1.x + 3.0 * u * tt * p2.x + ttt * p3.x,
+        y: uuu * p0.y + 3.0 * uu * t * p1.y + 3.0 * u * tt * p2.y + ttt * p3.y,
+    }
+}
+

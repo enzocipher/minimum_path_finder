@@ -53,7 +53,7 @@ pub fn dijkstra_detallado(g: &DiGraph<String, i32>, origen: usize)-> (Vec<Option
                     preds[v].clear();
                     preds[v].push(u);
                     heap.push(Entrada { dist: alt, node: v });
-                    log.push(format!("  Relajo ({} -> {}, w={}): dist[{}]={}", u, v, w, v, alt));
+                    log.push(format!("  Trazo ({} -> {}, w={}): dist[{}]={}", u, v, w, v, alt));
                 }
                 Some(curr) if alt < curr => {
                     dist[v] = Some(alt);
