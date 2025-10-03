@@ -1,7 +1,10 @@
 [package]
 name = "projecto_computacional"
 version = "0.1.0"
-edition = "2024"
+edition = "2025"
+authors = ["Enzo O'Besso enzocipher@gmail.com"]
+license = "MIT"
+description = "Projecto en rust para la Universidad Peruana de Ciencias Aplicadas"
 
 [dependencies]
 eframe = "0.28"
@@ -16,3 +19,4 @@ winres = "0.1"
 name = "projecto_computacional"
 path = "src/main.rs"
 [package.metadata.winres]
+
