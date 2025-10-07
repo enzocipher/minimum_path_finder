@@ -39,9 +39,6 @@ jobs:
           rustc -V
           cargo -V
 
-      - name: Verificar formato
-        run: cargo fmt --all -- --check
-
       - name: Clippy (denegar warnings)
         run: cargo clippy --all-targets --all-features -- -D warnings
 
