@@ -1,3 +1,4 @@
+[![GitHub Profile](https://img.shields.io/badge/GitHub-enzocipher-181717?logo=github&logoColor=white&labelColor=181717)](https://github.com/enzocipher)
 # Visualizador de Grafos con Dijkstra 🪢
 
 Proyecto en **Rust** que permite:
