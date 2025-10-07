@@ -1,12 +1,12 @@
 //Welcome to hell
 #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
-mod grafo;
-mod dijkstra;
 mod dibujar;
-use eframe::{egui, App};
-use grafo::{gen_labels, GrafoManual, GrafoRandom};
+mod dijkstra;
+mod grafo;
+use eframe::{App, egui};
+use grafo::{GrafoManual, GrafoRandom, gen_labels};
 use petgraph::graph::DiGraph;
-use petgraph::visit::EdgeRef; 
+use petgraph::visit::EdgeRef;
 // La interfaz no sabia hacerla asi que tuve que investigar, podra ser mejor pero a las justas entiendo como funciona.
 // El proximo trabajo lo haré en python xd
 // main.rs solo maneja la interfaz y su inicialización, la logica del grafo y dijkstra estan en sus respectivos modulos
@@ -33,7 +33,10 @@ struct DijkstraApp {
 }
 
 #[derive(Clone, Copy, PartialEq)]
-enum Modo { Aleatorio, Manual }
+enum Modo {
+    Aleatorio,
+    Manual,
+}
 
 impl Default for DijkstraApp {
     fn default() -> Self {
@@ -88,8 +91,12 @@ impl DijkstraApp {
         };
 
         self.grafo = Some(g);
-        if self.origen >= self.n { self.origen = 0; }
-        if self.destino >= self.n { self.destino = (self.n - 1).max(0); }
+        if self.origen >= self.n {
+            self.origen = 0;
+        }
+        if self.destino >= self.n {
+            self.destino = (self.n - 1).max(0);
+        }
     }
 
     fn correr_dijkstra(&mut self) {
@@ -104,7 +111,9 @@ impl DijkstraApp {
         self.log = pasos;
 
         if dist[self.destino].is_none() {
-            self.log.push("Destino no alcanzable desde el origen indicado, intente otro destino.".into());
+            self.log.push(
+                "Destino no alcanzable desde el origen indicado, intente otro destino.".into(),
+            );
             return;
         }
 
@@ -120,52 +129,61 @@ impl App for DijkstraApp {
             ui.heading("Digrafo y Dijkstra Aplicación para trabajo de matematica computacional");
         });
         // panel lateral de controles
-        egui::SidePanel::left("controls").resizable(true).show(ctx, |ui| {
-            ui.label("Parámetros");
-            ui.add(egui::Slider::new(&mut self.n, 8..=16).text("n (nodos)"));
+        egui::SidePanel::left("controls")
+            .resizable(true)
+            .show(ctx, |ui| {
+                ui.label("Parámetros");
+                ui.add(egui::Slider::new(&mut self.n, 8..=16).text("n (nodos)"));
 
-            ui.horizontal(|ui| {
-                ui.radio_value(&mut self.modo, Modo::Aleatorio, "Aleatorio");
-                ui.radio_value(&mut self.modo, Modo::Manual, "Manual");
+                ui.horizontal(|ui| {
+                    ui.radio_value(&mut self.modo, Modo::Aleatorio, "Aleatorio");
+                    ui.radio_value(&mut self.modo, Modo::Manual, "Manual");
+                });
+
+                if self.modo == Modo::Aleatorio {
+                    ui.add(
+                        egui::Slider::new(&mut self.prob_extra, 0.0..=1.0)
+                            .text("Prob. extra de arista"),
+                    );
+                } else {
+                    ui.label("Aristas (una por línea): `(U)inicio (V)destino (W)peso`");
+                    ui.add(
+                        egui::TextEdit::multiline(&mut self.manual_input)
+                            .desired_rows(8)
+                            .font(egui::TextStyle::Monospace),
+                    );
+                    ui.small("Ejemplo: A B 4  (A→B con peso 4)");
+                }
+
+                ui.separator();
+                ui.label("Origen / Destino");
+                ui.horizontal(|ui| {
+                    ui.add(
+                        egui::DragValue::new(&mut self.origen).range(0..=self.n.saturating_sub(1)),
+                    );
+                    ui.add(
+                        egui::DragValue::new(&mut self.destino).range(0..=self.n.saturating_sub(1)),
+                    );
+                });
+                ui.small("Los índices comienzan en 0. A=0, B=1, ...");
+
+                ui.separator();
+                ui.label("Gráfico");
+                ui.add(egui::Slider::new(&mut self.zoom, 0.5..=2.0).text("Zoom"));
+                ui.checkbox(&mut self.mostrar_pesos, "Mostrar pesos");
+
+                ui.separator();
+                if ui.button("Construir grafo").clicked() {
+                    self.construir();
+                }
+                if ui.button("Correr Dijkstra").clicked() {
+                    self.correr_dijkstra();
+                }
+
+                if let Some(err) = &self.error {
+                    ui.colored_label(egui::Color32::RED, err);
+                }
             });
-
-            if self.modo == Modo::Aleatorio {
-                ui.add(egui::Slider::new(&mut self.prob_extra, 0.0..=1.0).text("Prob. extra de arista"));
-            } else {
-                ui.label("Aristas (una por línea): `(U)inicio (V)destino (W)peso`");
-                ui.add(
-                    egui::TextEdit::multiline(&mut self.manual_input)
-                        .desired_rows(8)
-                        .font(egui::TextStyle::Monospace),
-                );
-                ui.small("Ejemplo: A B 4  (A→B con peso 4)");
-            }
-
-            ui.separator();
-            ui.label("Origen / Destino");
-            ui.horizontal(|ui| {
-                ui.add(egui::DragValue::new(&mut self.origen).range(0..=self.n.saturating_sub(1)));
-                ui.add(egui::DragValue::new(&mut self.destino).range(0..=self.n.saturating_sub(1)));
-            });
-            ui.small("Los índices comienzan en 0. A=0, B=1, ...");
-
-            ui.separator();
-            ui.label("Gráfico");
-            ui.add(egui::Slider::new(&mut self.zoom, 0.5..=2.0).text("Zoom"));
-            ui.checkbox(&mut self.mostrar_pesos, "Mostrar pesos");
-
-            ui.separator();
-            if ui.button("Construir grafo").clicked() {
-                self.construir();
-            }
-            if ui.button("Correr Dijkstra").clicked() {
-                self.correr_dijkstra();
-            }
-
-            if let Some(err) = &self.error {
-                ui.colored_label(egui::Color32::RED, err);
-            }
-        });
         // panel para ver resultado :like:
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::ScrollArea::vertical()
@@ -219,7 +237,9 @@ impl App for DijkstraApp {
                                     self.offset,
                                 );
                             } else {
-                                ui.centered_and_justified(|ui| ui.label("Construye el grafo para visualizarlo."));
+                                ui.centered_and_justified(|ui| {
+                                    ui.label("Construye el grafo para visualizarlo.")
+                                });
                             }
                         });
 
@@ -289,20 +309,24 @@ impl App for DijkstraApp {
                                         }
                                     }
 
-                                    ui.monospace(format!("{}: {}   |   suma de pesos = {}", i + 1, texto, total_peso));
+                                    ui.monospace(format!(
+                                        "{}: {}   |   suma de pesos = {}",
+                                        i + 1,
+                                        texto,
+                                        total_peso
+                                    ));
                                 }
                             }
-
-
                         });
                 });
         });
-
     }
 }
 
 impl DijkstraApp {
-    fn new(_cc: &eframe::CreationContext<'_>) -> Self { Self::default() }
+    fn new(_cc: &eframe::CreationContext<'_>) -> Self {
+        Self::default()
+    }
 }
 
 // El clasico app.run()

@@ -10,7 +10,9 @@ pub fn draw_graph_offset(
     offset: Vec2,
 ) {
     let n = g.node_count();
-    if n == 0 { return; }
+    if n == 0 {
+        return;
+    }
 
     // layout circular con offset
     let center = rect.center() + offset;
@@ -21,12 +23,21 @@ pub fn draw_graph_offset(
     let mut pos: Vec<Pos2> = Vec::with_capacity(n);
     for i in 0..n {
         let ang = (i as f32) / (n as f32) * std::f32::consts::TAU;
-        pos.push(Pos2 { x: center.x + r * ang.cos(), y: center.y + r * ang.sin() });
+        pos.push(Pos2 {
+            x: center.x + r * ang.cos(),
+            y: center.y + r * ang.sin(),
+        });
     }
 
     // estilos
-    let stroke_edge = Stroke { width: 1.5, color: Color32::from_gray(90) };
-    let stroke_arrow = Stroke { width: 1.5, color: Color32::from_gray(90) };
+    let stroke_edge = Stroke {
+        width: 1.5,
+        color: Color32::from_gray(90),
+    };
+    let stroke_arrow = Stroke {
+        width: 1.5,
+        color: Color32::from_gray(90),
+    };
     let color_peso = Color32::from_rgb(240, 240, 240);
 
     // conteo de paralelas
@@ -79,14 +90,23 @@ pub fn draw_graph_offset(
 
             if mostrar_pesos {
                 // Separar pesos si existe arista opuesta
-                let mut mid = Pos2 { x: (a.x + b.x) * 0.5, y: (a.y + b.y) * 0.5 };
+                let mut mid = Pos2 {
+                    x: (a.x + b.x) * 0.5,
+                    y: (a.y + b.y) * 0.5,
+                };
                 let font = egui::FontId::proportional((12.0 * zoom).clamp(10.0, 18.0));
                 let opuesta = multi_count.get(&(v, u)).unwrap_or(&0) > &0;
                 if opuesta {
                     let sep = 12.0 * zoom;
                     mid += normal * sep;
                 }
-                painter.text(mid, Align2::CENTER_CENTER, format!("{}", w), font, color_peso);
+                painter.text(
+                    mid,
+                    Align2::CENTER_CENTER,
+                    format!("{}", w),
+                    font,
+                    color_peso,
+                );
             }
         } else {
             // ---- múltiples aristas: curvas a lados opuestos ----
@@ -154,7 +174,10 @@ pub fn draw_graph_offset(
     }
 
     // nodos
-    let stroke_node = Stroke { width: 2.0, color: Color32::from_rgb(40, 90, 60) };
+    let stroke_node = Stroke {
+        width: 2.0,
+        color: Color32::from_rgb(40, 90, 60),
+    };
     let fill_node = Color32::from_rgb(178, 220, 180);
     let color_text = Color32::from_rgb(20, 40, 25);
 
@@ -175,7 +198,10 @@ pub fn draw_graph_offset(
         rect,
         Rounding::same(8.0),
         Color32::TRANSPARENT,
-        Stroke { width: 1.0, color: Color32::from_gray(180) },
+        Stroke {
+            width: 1.0,
+            color: Color32::from_gray(180),
+        },
     );
 }
 
@@ -195,4 +221,3 @@ fn bezier_point(p0: Pos2, p1: Pos2, p2: Pos2, p3: Pos2, t: f32) -> Pos2 {
         y: uuu * p0.y + 3.0 * uu * t * p1.y + 3.0 * u * tt * p2.y + ttt * p3.y,
     }
 }
-

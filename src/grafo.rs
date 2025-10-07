@@ -4,10 +4,12 @@ use rand::Rng;
 // Funciones para generar digrafos, tanto aleatorios como manuales
 
 pub fn gen_labels(n: usize) -> Vec<String> {
-    (0..n).map(|i| {
-        let c = (b'A' + (i as u8)) as char;
-        c.to_string()
-    }).collect()
+    (0..n)
+        .map(|i| {
+            let c = (b'A' + (i as u8)) as char;
+            c.to_string()
+        })
+        .collect()
 }
 
 pub struct GrafoRandom {
@@ -40,7 +42,9 @@ impl GrafoRandom {
         // Aristas extra con probabilidad p_extra
         for i in 0..idx.len() {
             for j in 0..idx.len() {
-                if i == j { continue; }
+                if i == j {
+                    continue;
+                }
                 if rng.random::<f64>() < self.p_extra {
                     let w = rng.random_range(1..=9);
                     grafo.add_edge(idx[i], idx[j], w);
@@ -67,25 +71,40 @@ impl GrafoManual {
         for l in &self.labels {
             idx.push(grafo.add_node(l.clone()));
         }
-        // que demonios es u? v? w? 
+        // que demonios es u? v? w?
         // Son los nodos y el peso de la arista :P ejemplo: A B 5 es una arista de A a B con peso 5
         for (lineno, line) in self.raw.lines().enumerate() {
             let line = line.trim();
-            if line.is_empty() { continue; }
+            if line.is_empty() {
+                continue;
+            }
             let parts: Vec<_> = line.split_whitespace().collect();
             if parts.len() != 3 {
-                return Err(format!("Línea {}: formato inválido. Usa: U V peso", lineno + 1));
+                return Err(format!(
+                    "Línea {}: formato inválido. Usa: U V peso",
+                    lineno + 1
+                ));
             }
             let u_lbl = parts[0].to_uppercase();
             let v_lbl = parts[1].to_uppercase();
-            let w: i32 = parts[2].parse().map_err(|_| format!("Línea {}: peso inválido", lineno + 1))?;
+            let w: i32 = parts[2]
+                .parse()
+                .map_err(|_| format!("Línea {}: peso inválido", lineno + 1))?;
 
-            let u = self.labels.iter().position(|s| s == &u_lbl)
+            let u = self
+                .labels
+                .iter()
+                .position(|s| s == &u_lbl)
                 .ok_or_else(|| format!("Línea {}: nodo '{}' no existe", lineno + 1, u_lbl))?;
-            let v = self.labels.iter().position(|s| s == &v_lbl)
+            let v = self
+                .labels
+                .iter()
+                .position(|s| s == &v_lbl)
                 .ok_or_else(|| format!("Línea {}: nodo '{}' no existe", lineno + 1, v_lbl))?;
 
-            if u == v { continue; }
+            if u == v {
+                continue;
+            }
             grafo.add_edge(
                 petgraph::prelude::NodeIndex::new(u),
                 petgraph::prelude::NodeIndex::new(v),
