@@ -33,13 +33,13 @@ Para generar ejecutable:
 cargo build --release 
 
 # 🖼️ Funcionalidades principales
-✨ Crear y editar grafos en la interfaz.
+- Crear y editar grafos en la interfaz.
 
-📝 Agregar nodos y aristas con pesos personalizados.
+- Agregar nodos y aristas con pesos personalizados.
 
-🔍 Calcular la ruta más corta entre dos nodos con Dijkstra.
+- Calcular la ruta más corta entre dos nodos con Dijkstra.
 
-🎨 Visualización clara e interactiva gracias a egui.
+- Visualización clara e interactiva gracias a egui.
 
 # 📦 Modo de uso
 Abre la aplicación.
