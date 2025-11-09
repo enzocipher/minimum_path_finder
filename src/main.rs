@@ -125,6 +125,33 @@ impl DijkstraApp {
 impl App for DijkstraApp {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
         // panel de titulo
+
+        let mut style = (*ctx.style()).clone();
+        style.text_styles = [
+            (
+                egui::TextStyle::Heading,
+                egui::FontId::new(20.0, egui::FontFamily::Proportional),
+            ),
+            (
+                egui::TextStyle::Body,
+                egui::FontId::new(16.0, egui::FontFamily::Proportional),
+            ),
+            (
+                egui::TextStyle::Monospace,
+                egui::FontId::new(16.0, egui::FontFamily::Monospace),
+            ),
+            (
+                egui::TextStyle::Button,
+                egui::FontId::new(16.0, egui::FontFamily::Proportional),
+            ),
+            (
+                egui::TextStyle::Small,
+                egui::FontId::new(14.0, egui::FontFamily::Proportional),
+            ),
+        ]
+        .into();
+        ctx.set_style(style);
+
         egui::TopBottomPanel::top("header").show(ctx, |ui| {
             ui.heading("Digrafo y Dijkstra Aplicación para trabajo de matematica computacional");
         });
